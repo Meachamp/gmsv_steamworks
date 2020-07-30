@@ -6,6 +6,9 @@
 #include <string>
 #include <list>
 #include <algorithm>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 struct QueuedFile {
 	uint64 id;
@@ -52,9 +55,21 @@ void CSteamworks::OnItemDownloaded(DownloadItemResult_t* item) {
 		result = SteamGameServerUGC()->GetItemInstallInfo(item->m_nPublishedFileId, &sizeOnDisk, folderPath, sizeof(folderPath), &timestamp);
 	}
 
+	std::string filePath;
+	if (result) {
+		auto it = fs::directory_iterator(folderPath);
+
+		if (it._At_end()) {
+			result = false;
+		}
+		else {
+			filePath = it->path().string();
+		}
+	}
+
 	//The function's getting called either way, just send nil if the result is bad.
 	LUA->ReferencePush(element->ref);
-	result ? LUA->PushString(folderPath) : LUA->PushNil();
+	result ? LUA->PushString(filePath.c_str()) : LUA->PushNil();
 	LUA->PCall(1, 0, 0);
 	LUA->ReferenceFree(element->ref);
 
