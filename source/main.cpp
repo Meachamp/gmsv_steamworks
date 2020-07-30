@@ -17,8 +17,6 @@ struct CSteamworks {
 
 	STEAM_GAMESERVER_CALLBACK(CSteamworks, OnItemDownloaded, DownloadItemResult_t);
 
-	STEAM_CALLBACK(CSteamworks, OnPersonaChange, PersonaStateChange_t);
-
 	void QueueDownload(uint64 id, int ref);
 
 	std::list<QueuedFile> fileQueue;
@@ -64,10 +62,6 @@ void CSteamworks::OnItemDownloaded(DownloadItemResult_t* item) {
 	fileQueue.erase(element);
 }
 
-void CSteamworks::OnPersonaChange(PersonaStateChange_t* persona) {
-	std::cout << persona->m_ulSteamID << std::endl;
-}
-
 CSteamworks* steamworks = nullptr;
 
 LUA_FUNCTION_STATIC(DownloadUGC) {
@@ -92,47 +86,14 @@ LUA_FUNCTION_STATIC(DownloadUGC) {
 	return 1;
 }
 
-ISteamFriends* friends = nullptr;
-LUA_FUNCTION_STATIC(RequestPlayerInfo) {
-	LUA->CheckString(1);
-	LUA->CheckType(2, GarrysMod::Lua::Type::Function);
-	
-	const char* id = LUA->GetString(1);
-
-	uint64 steamid64 = std::stoull(id);
-	CSteamID steamid = steamid64;
-	bool needsInfo = friends->RequestUserInformation(steamid, true);
-
-
-	return 0;
-}
-
-LUA_FUNCTION_STATIC(test) {
-	SteamAPI_RunCallbacks();
-
-	return 0;
-}
-
 GMOD_MODULE_OPEN()
 {
-	HSteamPipe p = SteamClient()->CreateSteamPipe();
-	HSteamUser u = SteamClient()->CreateLocalUser(&p, EAccountType::k_EAccountTypeAnonUser);
-	friends = SteamClient()->GetISteamFriends(u, p, STEAMFRIENDS_INTERFACE_VERSION);
-
 	steamworks = new CSteamworks(LUA);
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 		LUA->PushString("steamworks");
 		LUA->CreateTable();
 			LUA->PushString("DownloadUGC");
 			LUA->PushCFunction(DownloadUGC);
-			LUA->SetTable(-3);
-
-			LUA->PushString("RequestPlayerInfo");
-			LUA->PushCFunction(RequestPlayerInfo);
-			LUA->SetTable(-3);
-
-			LUA->PushString("test");
-			LUA->PushCFunction(test);
 			LUA->SetTable(-3);
 		LUA->SetTable(-3);
 	LUA->Pop();
