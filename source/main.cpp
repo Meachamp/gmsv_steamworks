@@ -8,6 +8,7 @@
 #include <algorithm>
 
 #ifdef __linux
+#pragma GCC diagnostic ignored "-Winvalid-offsetof"
 #include <experimental/filesystem>
 namespace fs = std::experimental::filesystem;
 #else
@@ -15,16 +16,13 @@ namespace fs = std::experimental::filesystem;
 namespace fs = std::filesystem;
 #endif
 
-
-namespace fs = std::filesystem;
-
 struct QueuedFile {
 	uint64 id;
 	int ref;
 };
 
 struct CSteamworks {
-	CSteamworks(GarrysMod::Lua::ILuaBase* LUA) : LUA(LUA) {}
+	CSteamworks(GarrysMod::Lua::ILuaBase* g_lua) : LUA(g_lua) {}
 
 	STEAM_GAMESERVER_CALLBACK(CSteamworks, OnItemDownloaded, DownloadItemResult_t);
 
