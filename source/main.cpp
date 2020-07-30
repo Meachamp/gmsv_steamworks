@@ -6,7 +6,15 @@
 #include <string>
 #include <list>
 #include <algorithm>
+
+#ifdef __linux
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#else
 #include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
 
 namespace fs = std::filesystem;
 
@@ -55,11 +63,13 @@ void CSteamworks::OnItemDownloaded(DownloadItemResult_t* item) {
 		result = SteamGameServerUGC()->GetItemInstallInfo(item->m_nPublishedFileId, &sizeOnDisk, folderPath, sizeof(folderPath), &timestamp);
 	}
 
+	//Check if the directory has anything in it. 
+	//If it does, build the full file path. If not, we have a bad download.
 	std::string filePath;
 	if (result) {
 		auto it = fs::directory_iterator(folderPath);
 
-		if (it._At_end()) {
+		if (it == fs::end(it)) {
 			result = false;
 		}
 		else {
