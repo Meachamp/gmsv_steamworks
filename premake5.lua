@@ -18,3 +18,6 @@ CreateWorkspace({name = "steamworks"})
 		IncludeDetouring()
 		IncludeScanning()
 		IncludeLuaShared()
+
+		filter("system:linux")
+			links({"stdc++fs"})

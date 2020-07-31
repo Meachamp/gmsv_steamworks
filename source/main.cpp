@@ -126,6 +126,8 @@ GMOD_MODULE_OPEN()
 
 GMOD_MODULE_CLOSE()
 {
+	LUA;
+
 	delete steamworks;
 	steamworks = nullptr;
 
