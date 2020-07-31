@@ -15,3 +15,6 @@ end)
 
 ```
 
+# Important notice!
+
+To get this to work, you need a more recent version of the steam client. You will need to put this file in `$EXECUTABLE_ROOT/bin`, replacing the one that is already there. On windows, this file may not be present, so just drop a new version in. On linux, this file will definitely already be present and will need to be replaced. **If you fail to do this properly, your server will segfault.**
