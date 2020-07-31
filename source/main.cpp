@@ -39,50 +39,47 @@ void CSteamworks::QueueDownload(uint64 id, int ref) {
 void CSteamworks::OnItemDownloaded(DownloadItemResult_t* item) {
 	//We only care about garry's mod events. We can potentially get others. 
 	if (item->m_unAppID != 4000) return;
-	uint64 id = item->m_nPublishedFileId;
 
-	//Search for first queued file we can find.
-	auto element = std::find_if(std::begin(fileQueue), std::end(fileQueue), [&](const QueuedFile& file) {
-		return file.id == id;
+	//Search for all queued files with the ID
+	//If multiple files of the same ugc ID get queued, we only get one callback from steam. 
+	fileQueue.remove_if([&] (const QueuedFile& element) {
+		if (element.id != item->m_nPublishedFileId)
+			return false;
+
+		char folderPath[256];
+		uint64 sizeOnDisk;
+		uint32 timestamp;
+
+		bool result = item->m_eResult == EResult::k_EResultOK;
+
+		//We're okay, now continue by checking ItemInstallInfo
+		if (result) {
+			result = SteamGameServerUGC()->GetItemInstallInfo(item->m_nPublishedFileId, &sizeOnDisk, folderPath, sizeof(folderPath), &timestamp);
+		}
+
+		//Check if the directory has anything in it. 
+		//If it does, build the full file path. If not, we have a bad download.
+		std::string filePath;
+		if (result) {
+			auto it = fs::directory_iterator(folderPath);
+
+			if (it == fs::end(it)) {
+				result = false;
+			}
+			else {
+				filePath = it->path().string();
+			}
+		}
+
+		//The function's getting called either way, just send nil if the result is bad.
+		LUA->ReferencePush(element.ref);
+		result ? LUA->PushString(filePath.c_str()) : LUA->PushNil();
+		LUA->PCall(1, 0, 0);
+		LUA->ReferenceFree(element.ref);
+
+		//Delete the element
+		return true;
 	});
-
-	//If it's not in the queue, it's not one of ours
-	if (element == fileQueue.end())
-		return;
-
-	char folderPath[256];
-	uint64 sizeOnDisk;
-	uint32 timestamp;
-
-	bool result = item->m_eResult == EResult::k_EResultOK;
-
-	//We're okay, now continue by checking ItemInstallInfo
-	if (result) {
-		result = SteamGameServerUGC()->GetItemInstallInfo(item->m_nPublishedFileId, &sizeOnDisk, folderPath, sizeof(folderPath), &timestamp);
-	}
-
-	//Check if the directory has anything in it. 
-	//If it does, build the full file path. If not, we have a bad download.
-	std::string filePath;
-	if (result) {
-		auto it = fs::directory_iterator(folderPath);
-
-		if (it == fs::end(it)) {
-			result = false;
-		}
-		else {
-			filePath = it->path().string();
-		}
-	}
-
-	//The function's getting called either way, just send nil if the result is bad.
-	LUA->ReferencePush(element->ref);
-	result ? LUA->PushString(filePath.c_str()) : LUA->PushNil();
-	LUA->PCall(1, 0, 0);
-	LUA->ReferenceFree(element->ref);
-
-	//Delete the element from our queue. 
-	fileQueue.erase(element);
 }
 
 CSteamworks* steamworks = nullptr;
