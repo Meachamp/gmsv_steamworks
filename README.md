@@ -17,8 +17,8 @@ end)
 
 # Builds
 
-Builds are available for both windows and linux. Check the actions tab. 
+Commit builds are available for both windows and linux. Check the actions tab. Check releases for the latest tested release and steam binaries. 
 
 # Important notice!
 
-To get this to work **on linux**, you need a more recent version of the steam client. You will need to put this file in `$EXECUTABLE_ROOT/bin`, replacing the one that is already there. **If you fail to do this properly, your server will segfault.**
+To get this to work, you need a more recent version of the steam client. You will need to put this file in `$EXECUTABLE_ROOT/bin`, replacing the one that is already there if present. **If you fail to do this properly, your server will segfault.** You can get a copy of the latest client libraries from the appropriate Steamworks SDK depot or from the releases tab. 
